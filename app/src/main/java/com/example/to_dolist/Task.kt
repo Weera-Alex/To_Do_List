@@ -10,5 +10,5 @@ data class Task(
     val title: String,
     val description: String,
     val date: String,
-    val status: Boolean
+    val status: Boolean = false
 )
