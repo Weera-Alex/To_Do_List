@@ -26,7 +26,7 @@ class TaskViewModel(
                 val description = state.value.description
                 val date = state.value.date
                 val status = state.value.status
-                if(title.isBlank() || description.isBlank() || date.isBlank()) {
+                if(title.isBlank()) {
                     return
                 }
 

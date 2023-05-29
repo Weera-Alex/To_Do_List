@@ -8,7 +8,7 @@ data class Task(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
     val title: String,
-    val description: String,
-    val date: String,
+    val description: String? = null,
+    val date: String? = null,
     val status: Boolean = false
 )
