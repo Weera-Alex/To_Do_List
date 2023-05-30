@@ -2,6 +2,7 @@ package com.example.to_dolist
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
@@ -13,15 +14,23 @@ class TaskViewModel(
 ): ViewModel() {
     private val _state = MutableStateFlow(TaskState())
     val state = _state.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), TaskState())
-
     fun onEvent(event: TaskEvent) {
         when(event) {
+            is TaskEvent.GetAllTasks -> {
+                viewModelScope.launch {
+                    dao.getAllTasks().collect { tasks ->
+                        _state.update {
+                            it.copy(tasks = tasks)
+                        }
+                    }
+                }
+            }
             is TaskEvent.DeleteTask -> {
                 viewModelScope.launch {
                     dao.deleteTask(event.task)
                 }
             }
-            TaskEvent.SaveTask -> {
+            is TaskEvent.SaveTask -> {
                 val title = state.value.title
                 val description = state.value.description
                 val date = state.value.date
@@ -29,38 +38,30 @@ class TaskViewModel(
                 if(title.isBlank()) {
                     return
                 }
-
                 val task = Task(
                     title = title,
                     description = description,
                     date = date,
                     status = status
                 )
+
                 viewModelScope.launch {
                     dao.insertTask(task)
                 }
             }
-            is TaskEvent.SetDate -> {
-                _state.update {
-                    it.copy(
-                        date = event.date
-                    )
-                }
+            is TaskEvent.SetTitle -> _state.update {
+                it.copy(title = event.title)
             }
             is TaskEvent.SetDescription -> _state.update {
-                it.copy(
-                    description = event.description
-                )
+                it.copy(description = event.description)
+            }
+            is TaskEvent.SetDate -> {
+                _state.update {
+                    it.copy(date = event.date)
+                }
             }
             is TaskEvent.SetStatus -> _state.update {
-                it.copy(
-                    status = event.status
-                )
-            }
-            is TaskEvent.SetTitle -> _state.update {
-                it.copy(
-                    title = event.title
-                )
+                it.copy(status = event.status)
             }
         }
     }

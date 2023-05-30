@@ -15,8 +15,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
@@ -26,16 +24,8 @@ import androidx.navigation.NavHostController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Screen(navController: NavHostController) {
+fun Screen(navController: NavHostController, state: TaskState, onEvent: (TaskEvent) -> Unit) {
 
-    val titleState = remember { mutableStateOf("") }
-    val descriptionState = remember { mutableStateOf("") }
-    val dateState = remember { mutableStateOf("") }
-    val fields = listOf(
-        "Title" to titleState,
-        "Description" to descriptionState,
-        "Date" to dateState
-    )
 
     val number = 20
     val customAppBarColors = Color(red = number, green = number, blue = number)
@@ -52,7 +42,8 @@ fun Screen(navController: NavHostController) {
             actions = {
                 Button(modifier = Modifier.padding(end = 14.dp),
                     onClick = {
-
+                        onEvent(TaskEvent.SaveTask)
+                        navController.navigateUp()
                     },
                     shape = RectangleShape,
                     colors = ButtonDefaults.buttonColors(Color.Transparent),
@@ -63,15 +54,28 @@ fun Screen(navController: NavHostController) {
             }
         )
         Column(modifier = Modifier.padding(16.dp)) {
-            fields.forEach { (fieldName, fieldValueState) ->
                 OutlinedTextField(
-                    value = fieldValueState.value,
-                    onValueChange = { value -> fieldValueState.value = value },
-                    label = { Text(text = fieldName) },
-                    placeholder = { Text(text = "Enter $fieldName") },
+                    value = state.title,
+                    onValueChange = { onEvent(TaskEvent.SetTitle(it)) },
+                    label = { Text(text = "Title") },
+                    placeholder = { Text(text = "Enter title") },
                     modifier = Modifier.padding(vertical = 4.dp)
                 )
-            }
+                OutlinedTextField(
+                    value = state.description  ?: "",
+                    onValueChange = { onEvent(TaskEvent.SetDescription(it)) },
+                    label = { Text(text = "Description") },
+                    placeholder = { Text(text = "Enter description") },
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
+                OutlinedTextField(
+                    value = state.date ?: "",
+                    onValueChange = { onEvent(TaskEvent.SetDate(it)) },
+                    label = { Text(text = "Date") },
+                    placeholder = { Text(text = "Enter date") },
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
+
         }
     }
 }

@@ -3,50 +3,37 @@ package com.example.to_dolist
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.Divider
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FabPosition
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.navigation.NavHostController
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.room.Room
 import com.example.to_dolist.ui.theme.ToDoListTheme
 
 class MainActivity : ComponentActivity() {
+    val appDatabase: TaskDatabase by lazy {
+        Room.databaseBuilder(applicationContext, TaskDatabase::class.java, TaskDatabase.NAME)
+            .build()
+    }
+    private val viewModel by viewModels<TaskViewModel> (
+        factoryProducer = {
+            object : ViewModelProvider.Factory {
+                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                    return TaskViewModel(appDatabase.dao) as T
+
+            }
+        }
+    })
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -56,7 +43,8 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    App()
+                    val state by viewModel.state.collectAsState()
+                    App(state, onEvent = viewModel::onEvent)
                 }
             }
         }
@@ -64,109 +52,21 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun App() {
+fun App(state: TaskState, onEvent: (TaskEvent) -> Unit) {
     val navController = rememberNavController()
     NavHost(
         navController = navController,
         startDestination = "home"
     ) {
         composable("home") {
-            Task(navController)
+            TaskScreen(navController, state = state)
         }
         composable("create") {
-            Screen(navController)
+            Screen(navController, state = state, onEvent)
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun Task(navController: NavHostController) {
-    val scrollState = rememberLazyListState()
-    val today = remember { mutableStateOf(true) }
 
-    Scaffold(
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { navController.navigate("create") }, shape = CircleShape,) {
-                Icon(Icons.Default.Add, contentDescription = "")
-            }
-        },
-        floatingActionButtonPosition = FabPosition.End
-    ) { contentPadding ->
-        Column {
-            TodaySection(today.value) { today.value = !today.value }
-            if (today.value) {
-                TaskList(scrollState, contentPadding)
-            }
-        }
-    }
-}
 
-@Composable
-fun TodaySection(expanded: Boolean, onClick: () -> Unit) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(start = 16.dp, top = 32.dp, bottom = 32.dp)
-    ) {
-        Text(
-            "Today",
-            fontWeight = FontWeight.Bold,
-            style = MaterialTheme.typography.headlineMedium,
-        )
-        IconButton(
-            onClick = onClick,
-            modifier = Modifier.padding(start = 8.dp)
-        ) {
-            Box(modifier = Modifier
-                .graphicsLayer(rotationZ = if (expanded) 180f else 0f)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.ArrowDropDown,
-                    contentDescription = if (expanded) "Expand less" else "Expand more"
-                )
-            }
-
-        }
-    }
-}
-
-@Composable
-fun TaskList(scrollState: LazyListState, contentPadding: PaddingValues) {
-    LazyColumn(
-        state = scrollState,
-        contentPadding = contentPadding
-    ) {
-        items(20) { item ->
-            TaskItem(item)
-        }
-    }
-}
-
-@Composable
-fun TaskItem(item: Int) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        val checkedState = remember { mutableStateOf(false) }
-        Checkbox(
-            checked = checkedState.value,
-            onCheckedChange = { checkedState.value = it },
-        )
-        Text(
-            text = "Task #$item with a long text that needs to be truncated",
-            modifier = Modifier
-                .padding(start = 8.dp)
-                .widthIn(max = 200.dp), // Set a maximum width for the text
-            fontSize = 16.sp,
-            overflow = TextOverflow.Ellipsis, // Truncate the text when it's too long
-            maxLines = 1 // Display only a single line of text
-        )
-    }
-    Divider(
-        color = Color.Gray,
-        thickness = 1.dp,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 16.dp, start = 56.dp, top = 16.dp)
-    )
-}
 
