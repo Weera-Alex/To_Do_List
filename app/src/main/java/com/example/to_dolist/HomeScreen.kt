@@ -43,7 +43,7 @@ import androidx.navigation.NavHostController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TaskScreen(navController: NavHostController, state: TaskState) {
+fun TaskScreen(navController: NavHostController) {
     val scrollState = rememberLazyListState()
     val today = remember { mutableStateOf(true) }
 
@@ -59,7 +59,7 @@ fun TaskScreen(navController: NavHostController, state: TaskState) {
         Column {
             TodaySection(today.value) { today.value = !today.value }
             if (today.value) {
-                TaskList(scrollState, contentPadding, state = state)
+                TaskList(scrollState, contentPadding)
             }
         }
     }
@@ -93,12 +93,12 @@ fun TodaySection(expanded: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-fun TaskList(scrollState: LazyListState, contentPadding: PaddingValues, state: TaskState) {
+fun TaskList(scrollState: LazyListState, contentPadding: PaddingValues) {
     LazyColumn(
         state = scrollState,
         contentPadding = contentPadding
     ) {
-        itemsIndexed(state.tasks) { _, item ->
+        itemsIndexed(listTask) { _, item ->
             TaskItem(item)
         }
     }
@@ -124,11 +124,4 @@ fun TaskItem(item: Task) {
             color = if (checkedState.value) Color.DarkGray else Color.White
         )
     }
-    Divider(
-        color = Color.Gray,
-        thickness = 1.dp,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 16.dp, start = 56.dp, top = 16.dp)
-    )
 }

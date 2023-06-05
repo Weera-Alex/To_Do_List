@@ -15,6 +15,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
@@ -24,16 +28,16 @@ import androidx.navigation.NavHostController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Screen(navController: NavHostController, state: TaskState, onEvent: (TaskEvent) -> Unit) {
-
-
-    val number = 20
-    val customAppBarColors = Color(red = number, green = number, blue = number)
+fun Screen(navController: NavHostController) {
+    var title by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }
+    var date by remember { mutableStateOf("") }
 
     Column {
         TopAppBar(
             title = { Text(text = "Create task") },
-            colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = customAppBarColors),
+            colors = TopAppBarDefaults.smallTopAppBarColors(
+                containerColor = Color(red = 20, green = 20, blue = 20)),
             navigationIcon = {
                 IconButton(onClick = { navController.navigate("home") }) {
                     Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -42,7 +46,7 @@ fun Screen(navController: NavHostController, state: TaskState, onEvent: (TaskEve
             actions = {
                 Button(modifier = Modifier.padding(end = 14.dp),
                     onClick = {
-                        onEvent(TaskEvent.SaveTask)
+                        listTask.add(Task(title, description, date))
                         navController.navigateUp()
                     },
                     shape = RectangleShape,
@@ -54,28 +58,29 @@ fun Screen(navController: NavHostController, state: TaskState, onEvent: (TaskEve
             }
         )
         Column(modifier = Modifier.padding(16.dp)) {
-                OutlinedTextField(
-                    value = state.title,
-                    onValueChange = { onEvent(TaskEvent.SetTitle(it)) },
-                    label = { Text(text = "Title") },
-                    placeholder = { Text(text = "Enter title") },
-                    modifier = Modifier.padding(vertical = 4.dp)
-                )
-                OutlinedTextField(
-                    value = state.description  ?: "",
-                    onValueChange = { onEvent(TaskEvent.SetDescription(it)) },
-                    label = { Text(text = "Description") },
-                    placeholder = { Text(text = "Enter description") },
-                    modifier = Modifier.padding(vertical = 4.dp)
-                )
-                OutlinedTextField(
-                    value = state.date ?: "",
-                    onValueChange = { onEvent(TaskEvent.SetDate(it)) },
-                    label = { Text(text = "Date") },
-                    placeholder = { Text(text = "Enter date") },
-                    modifier = Modifier.padding(vertical = 4.dp)
-                )
+            OutlinedTextField(
+                value = title,
+                onValueChange = { newValue -> title = newValue },
+                label = { Text(text = "Title") },
+                placeholder = { Text(text = "Enter title") },
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
 
+            OutlinedTextField(
+                value = description,
+                onValueChange = { newValue -> description = newValue },
+                label = { Text(text = "Description") },
+                placeholder = { Text(text = "Enter description") },
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
+
+            OutlinedTextField(
+                value = date,
+                onValueChange = { newValue -> date = newValue },
+                label = { Text(text = "Date") },
+                placeholder = { Text(text = "Enter date") },
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
         }
     }
 }
