@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -28,11 +29,11 @@ import androidx.navigation.NavHostController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Screen(navController: NavHostController) {
+fun AddNewTaskScreen(navController: NavHostController) {
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var date by remember { mutableStateOf("") }
-
+    var isTitleNotEmpty by remember { mutableStateOf(false) }
     Column {
         TopAppBar(
             title = { Text(text = "Create task") },
@@ -46,8 +47,12 @@ fun Screen(navController: NavHostController) {
             actions = {
                 Button(modifier = Modifier.padding(end = 14.dp),
                     onClick = {
-                        listTask.add(Task(title, description, date))
-                        navController.navigateUp()
+                        if (title.isNotEmpty()) {
+                            listTask.add(Task(title, description, date))
+                            navController.navigateUp()
+                        } else {
+                            isTitleNotEmpty = true
+                        }
                     },
                     shape = RectangleShape,
                     colors = ButtonDefaults.buttonColors(Color.Transparent),
@@ -60,12 +65,19 @@ fun Screen(navController: NavHostController) {
         Column(modifier = Modifier.padding(16.dp)) {
             OutlinedTextField(
                 value = title,
-                onValueChange = { newValue -> title = newValue },
+                onValueChange = { newValue ->
+                    title = newValue
+                    isTitleNotEmpty = false
+                                },
                 label = { Text(text = "Title") },
                 placeholder = { Text(text = "Enter title") },
-                modifier = Modifier.padding(vertical = 4.dp)
+                modifier = Modifier.padding(vertical = 4.dp),
+                trailingIcon = {
+                    if (isTitleNotEmpty) {
+                        Icon(Icons.Default.Warning, contentDescription = "Warning", tint = Color.Red)
+                    }
+                }
             )
-
             OutlinedTextField(
                 value = description,
                 onValueChange = { newValue -> description = newValue },
@@ -73,7 +85,6 @@ fun Screen(navController: NavHostController) {
                 placeholder = { Text(text = "Enter description") },
                 modifier = Modifier.padding(vertical = 4.dp)
             )
-
             OutlinedTextField(
                 value = date,
                 onValueChange = { newValue -> date = newValue },

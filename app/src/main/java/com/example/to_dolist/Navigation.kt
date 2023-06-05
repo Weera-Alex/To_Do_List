@@ -7,16 +7,17 @@ import androidx.navigation.compose.rememberNavController
 
 @Composable
 fun AppNavigation() {
+    createSampleTasks()
     val navController = rememberNavController()
     NavHost(
         navController = navController,
         startDestination = "home"
     ) {
         composable("home") {
-            TaskScreen(navController)
+            HomeScreen(navController)
         }
         composable("create") {
-            Screen(navController)
+            AddNewTaskScreen(navController)
         }
     }
 }
