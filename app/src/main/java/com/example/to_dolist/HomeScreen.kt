@@ -55,11 +55,10 @@ import kotlinx.coroutines.withContext
 fun HomeScreen(navController: NavHostController) {
     val scrollState = rememberLazyListState()
     var today by remember { mutableStateOf(true) }
-    val value = "hello"
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navController.navigate("create/$value") }, shape = CircleShape,) {
+                onClick = { navController.navigate("create") }, shape = CircleShape,) {
                 Icon(Icons.Default.Add, contentDescription = "")
             }
         },

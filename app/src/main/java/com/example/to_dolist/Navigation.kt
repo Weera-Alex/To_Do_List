@@ -18,7 +18,7 @@ fun AppNavigation() {
         composable("home") {
             HomeScreen(navController)
         }
-        composable(route = "create/{value}") {
+        composable(route = "create") {
             AddNewTaskScreen(navController)
         }
         composable(route = "edit/{value}",

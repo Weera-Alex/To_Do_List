@@ -1,17 +1,13 @@
 package com.example.to_dolist
 
-import android.widget.DatePicker
-import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -29,31 +25,19 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavHostController
 import com.vanpra.composematerialdialogs.MaterialDialog
 import com.vanpra.composematerialdialogs.datetime.date.datepicker
-import com.vanpra.composematerialdialogs.datetime.time.timepicker
 import com.vanpra.composematerialdialogs.rememberMaterialDialogState
 import java.time.LocalDate
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -62,6 +46,7 @@ fun AddNewTaskScreen(navController: NavHostController) {
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var date by remember { mutableStateOf("") }
+    var color by remember { mutableStateOf("") }
     var isTitleNotEmpty by remember { mutableStateOf(false) }
     val dateDialogState = rememberMaterialDialogState()
     var isDateFieldFocused by remember { mutableStateOf(false) }
@@ -95,27 +80,45 @@ fun AddNewTaskScreen(navController: NavHostController) {
             }
         )
         Column(modifier = Modifier.padding(16.dp)) {
-            OutlinedTextField(
-                value = title,
-                onValueChange = { newValue ->
-                    title = newValue
-                    isTitleNotEmpty = false
-                                },
-                label = { Text(text = "Title") },
-                placeholder = { Text(text = "Enter title") },
-                modifier = Modifier.padding(vertical = 4.dp),
-                trailingIcon = {
-                    if (isTitleNotEmpty) {
-                        Icon(Icons.Default.Warning, contentDescription = "Warning", tint = Color.Red)
+            Row {
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { newValue ->
+                        title = newValue
+                        isTitleNotEmpty = false
+                    },
+                    label = { Text(text = "Title") },
+                    placeholder = { Text(text = "Add a task") },
+                    modifier = Modifier.padding(vertical = 4.dp).weight(3f),
+                    trailingIcon = {
+                        if (isTitleNotEmpty) {
+                            Icon(
+                                Icons.Default.Warning,
+                                contentDescription = "Warning",
+                                tint = Color.Yellow
+                            )
+                        }
                     }
-                }
-            )
+                )
+                Spacer(modifier = Modifier.padding(horizontal = 6.dp))
+                OutlinedTextField(
+                    value = color,
+                    onValueChange = { newValue ->
+                        color = newValue
+                    },
+                    label = { Text(text = "Color") },
+                    placeholder = { Box(modifier = Modifier.background(Color.Blue).clickable {  }) },
+                    modifier = Modifier.padding(vertical = 4.dp).weight(1f),
+                )
+            }
             OutlinedTextField(
                 value = description,
                 onValueChange = { newValue -> description = newValue },
-                label = { Text(text = "Description") },
-                placeholder = { Text(text = "Enter description") },
-                modifier = Modifier.padding(vertical = 4.dp)
+                label = { Text(text = "Notes") },
+                placeholder = { Text(text = "Add note") },
+                modifier = Modifier
+                    .padding(vertical = 4.dp)
+                    .fillMaxWidth()
             )
             OutlinedTextField(
                 value = date,
@@ -123,9 +126,9 @@ fun AddNewTaskScreen(navController: NavHostController) {
                     date = newValue
                 },
                 label = { Text(text = "Date") },
-                placeholder = { Text(text = "Enter date") },
                 modifier = Modifier
                     .padding(vertical = 4.dp)
+                    .fillMaxWidth()
                     .clickable {
                         dateDialogState.show()
                     },
@@ -151,16 +154,13 @@ fun AddNewTaskScreen(navController: NavHostController) {
                     disabledPlaceholderColor = if (isDateFieldFocused) Color.White else Color.DarkGray,
                     disabledLabelColor = if (isDateFieldFocused) Color.White else Color.DarkGray,
                 )
-
             )
         }
     }
     MaterialDialog(
         dialogState = dateDialogState,
         buttons = {
-            positiveButton(text = "Ok") {
-
-            }
+            positiveButton(text = "Ok")
             negativeButton(text = "Cancel")
         }
     ) {
