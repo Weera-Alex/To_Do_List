@@ -1,10 +1,13 @@
 package com.example.to_dolist
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
@@ -51,21 +54,21 @@ import kotlinx.coroutines.withContext
 @Composable
 fun HomeScreen(navController: NavHostController) {
     val scrollState = rememberLazyListState()
-    val today = remember { mutableStateOf(true) }
-
+    var today by remember { mutableStateOf(true) }
+    val value = "hello"
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navController.navigate("create") }, shape = CircleShape,) {
+                onClick = { navController.navigate("create/$value") }, shape = CircleShape,) {
                 Icon(Icons.Default.Add, contentDescription = "")
             }
         },
         floatingActionButtonPosition = FabPosition.End
     ) { contentPadding ->
         Column {
-            TodaySection(today.value) { today.value = !today.value }
-            if (today.value) {
-                TaskList(scrollState, contentPadding)
+            TodaySection(today) { today = !today }
+            if (today) {
+                TaskList(scrollState, contentPadding, navController)
             }
         }
     }
@@ -99,55 +102,50 @@ fun TodaySection(expanded: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-fun TaskList(scrollState: LazyListState, contentPadding: PaddingValues) {
+fun TaskList(
+    scrollState: LazyListState,
+    contentPadding: PaddingValues,
+    navController: NavHostController
+) {
     LazyColumn(
         state = scrollState,
         contentPadding = contentPadding
     ) {
         itemsIndexed(listTask) { index, item ->
-            TaskItem(index, item)
+            TaskItem(index, item, navController)
         }
     }
 }
 
 @Composable
-fun TaskItem(index: Int, item: Task?) {
-    item?.let { task ->
-        var checkedState by rememberSaveable { mutableStateOf(false) }
-        val visibleState = remember { mutableStateOf(true) }
-        if (visibleState.value) {
-            AnimatedVisibility(
-                visible = true,
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(
-                        checked = checkedState,
-                        onCheckedChange = { isChecked ->
-                            checkedState = isChecked
-                            if (isChecked) {
-                                CoroutineScope(Dispatchers.Default).launch {
-                                    delay(400) // Delay for 5 seconds (adjust as needed)
-                                    withContext(Dispatchers.Main) {
-                                        checkedState = false
-                                        visibleState.value = false
-                                    }
-                                }
-                            }
-                        },
-                    )
-                    Text(
-                        text = "$index ${task.title} ${task.description} ${task.date}",
-                        modifier = Modifier
-                            .padding(start = 8.dp)
-                            .widthIn(max = 255.dp),
-                        fontSize = 16.sp,
-                        overflow = TextOverflow.Ellipsis,
-                        maxLines = 1,
-                        style = if (checkedState) TextStyle(textDecoration = TextDecoration.LineThrough) else TextStyle.Default,
-                        color = if (checkedState) Color.DarkGray else Color.White
-                    )
-                }
-            }
+fun TaskItem(index: Int, item: Task, navController: NavHostController) {
+    var checkedState by rememberSaveable { mutableStateOf(false) }
+    Box(modifier = Modifier
+        .padding(bottom = 2.dp, start = 6.dp, end = 6.dp)
+        .background(Color.DarkGray)
+        .fillMaxWidth()
+        .clickable {
+            navController.navigate("info/$index")
+        }){
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(
+                checked = checkedState,
+                onCheckedChange = { isChecked ->
+                    checkedState = isChecked
+                },
+            )
+            Text(
+                text = item.title,
+                modifier = Modifier
+                    .padding(start = 8.dp)
+                    .widthIn(max = 255.dp),
+                fontSize = 16.sp,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 1,
+                color = if (checkedState) Color.Gray else Color.White,
+                style = if (checkedState) TextStyle(textDecoration = TextDecoration.LineThrough)
+                else TextStyle(textDecoration = TextDecoration.None),
+            )
         }
     }
 }
