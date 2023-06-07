@@ -62,7 +62,7 @@ fun EditTaskScreen(navController: NavHostController, value: String) {
             actions = {
                 Button(modifier = Modifier.padding(end = 14.dp),
                     onClick = {
-                        if (title.isNotEmpty()) {
+                        if (title.isNotBlank()) {
                             listTask[value.toInt()] = Task(title, description, date)
                             navController.navigate("home")
                         } else {
@@ -85,7 +85,7 @@ fun EditTaskScreen(navController: NavHostController, value: String) {
                     isTitleBlank = false
                 },
                 label = { Text(text = "Title") },
-                modifier = Modifier.padding(vertical = 4.dp),
+                modifier = Modifier.padding(vertical = 4.dp).fillMaxWidth(),
                 trailingIcon = {
                     if (isTitleBlank) {
                         Icon(Icons.Default.Warning, contentDescription = "Warning", tint = Color.Red)

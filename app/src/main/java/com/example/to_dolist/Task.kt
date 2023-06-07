@@ -1,6 +1,12 @@
 package com.example.to_dolist
 
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.snapshots.SnapshotStateMap
+import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 data class Task(
     val title: String,
@@ -8,7 +14,110 @@ data class Task(
     val date: String?,
 )
 
-val listTask = mutableStateListOf<Task>()
+var listTask = mutableListOf<Task>()
+fun sortTask() {
+    val formatter = SimpleDateFormat("E, MMM d", Locale.ENGLISH)
+    listTask = listTask.sortedBy { it.date }.map { task ->
+        val date = if (!task.date.isNullOrEmpty()) {
+            task.date.let { SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH).parse(it) }
+        } else {
+            null
+        }
+        val formattedDate = date?.let { formatter.format(it) } ?: ""
+        task.copy(date = formattedDate)
+    }.toMutableList()
+}
+
+
+
+fun currentDate(): String? {
+    val currentDate = LocalDate.now()
+    val formatter = DateTimeFormatter.ofPattern("E, MMM d")
+    return currentDate.format(formatter)
+}
+fun tomorrowDate(daysAdded: Int): String? {
+    val currentDate = LocalDate.now()
+    val tomorrow = currentDate.plusDays(daysAdded.toLong())
+    val formatter = DateTimeFormatter.ofPattern("E, MMM d")
+    return tomorrow.format(formatter)
+}
+
+fun allOverdueDate(): MutableMap<Int, Task> {
+    val taskOverdue = mutableMapOf<Int, Task>()
+    val currentDate = currentDate()
+    for ((index, item) in listTask.withIndex()) {
+        if (item.date == "") {
+            continue
+        }
+        if (item.date != currentDate) {
+            taskOverdue[index] = item
+        } else {
+            break
+        }
+    }
+    return taskOverdue
+}
+fun allCurrentDate(): MutableMap<Int, Task> {
+    val taskToday = mutableMapOf<Int, Task>()
+    val currentDate = currentDate()
+    val tomorrowDate = tomorrowDate(1)
+    for ((index, item) in listTask.withIndex()) {
+        if (item.date == "") {
+            continue
+        }
+        if (item.date == currentDate) {
+            taskToday[index] = item
+        }
+        if (item.date == tomorrowDate) {
+            break
+        }
+    }
+    return taskToday
+}
+fun allLaterDate(): MutableMap<Int, Task> {
+    val taskLater = mutableMapOf<Int, Task>()
+    val tomorrowDate = tomorrowDate(1)
+    var turn = false
+    for ((index, item) in listTask.withIndex()) {
+        if (item.date == "") {
+            continue
+        }
+        if (item.date == tomorrowDate) {
+            turn = true
+            continue
+        }
+        if (turn) {
+            taskLater[index] = item
+        }
+    }
+    return taskLater
+}
+fun allTomorrowDate(): MutableMap<Int, Task> {
+    val taskTomorrow = mutableMapOf<Int, Task>()
+    val tomorrowDate = tomorrowDate(1)
+    for ((index, item) in listTask.withIndex()) {
+        if (item.date == "") {
+            continue
+        }
+        if (item.date == tomorrowDate) {
+            taskTomorrow[index] = item
+        }
+        if (item.date == tomorrowDate(2)) {
+            break
+        }
+    }
+    return taskTomorrow
+}
+
+fun allNoDate(): MutableMap<Int, Task> {
+    val taskNoDate = mutableMapOf<Int, Task>()
+    for ((index, item) in listTask.withIndex()) {
+        if (item.date == "") {
+            taskNoDate[index] = item
+        }
+    }
+    return taskNoDate
+}
 
 fun createSampleTasks() {
     val tasks = listOf(
@@ -20,24 +129,16 @@ fun createSampleTasks() {
         Task("Start a journal", "Begin a journaling practice to reflect on your thoughts and experiences", "2023-06-25"),
         Task("Have a picnic", "Enjoy a picnic in a nearby park or scenic spot", "2023-06-26"),
         Task("Take a photography walk", "Go for a walk with your camera and capture interesting photos", "2023-06-27"),
-        Task("Learn a new recipe", "Try out a new recipe and cook a delicious meal", "2023-06-28"),
-        Task("Donate to charity", "Support a charitable cause by making a donation", "2023-06-29"),
-        Task("Buy groceries", "Go to the supermarket and buy groceries for the week", "2023-06-05"),
-        Task("Finish project", "Complete the remaining tasks for the project", "2023-06-06"),
-        Task("Call friend", "Give your friend a call to catch up", "2023-06-07"),
-        Task("Read book", "Spend some time reading a new book", "2023-06-08"),
-        Task("Go for a walk", "Take a leisurely walk in the park", "2023-06-09"),
-        Task("Write a blog post", "Share your thoughts and experiences in a blog post", "2023-06-10"),
-        Task("Prepare for presentation", "Gather all the necessary materials for the upcoming presentation", "2023-06-11"),
-        Task("Clean the house", "Dedicate some time to cleaning and organizing your living space", "2023-06-12"),
-        Task("Exercise", "Engage in a workout or physical activity to stay fit", "2023-06-13"),
-        Task("Plan weekend trip", "Research and plan for an upcoming weekend getaway", "2023-06-14"),
-        Task("Attend meeting", "Attend an important meeting at work or school", "2023-06-15"),
-        Task("Cook dinner", "Prepare a delicious meal for yourself or your loved ones", "2023-06-16"),
-        Task("Learn a new skill", "Dedicate time to learn something new, like playing an instrument or coding", "2023-06-17"),
-        Task("Watch a movie", "Relax and enjoy a movie or your favorite TV show", "2023-06-18"),
-        Task("Volunteer for a cause", "Find a local organization and volunteer your time to help others", "2023-06-19")
-    )
-
+        Task("Try a new recipe", "Pick a recipe you've been wanting to try and challenge yourself in the kitchen. Enjoy the process of cooking and savor the delicious outcome.", "2023-06-06"),
+        Task("Read a book", "Choose a book from your reading list and spend some time immersed in its pages.", "2023-06-06"),
+        Task("Take a yoga class", "Find a local yoga studio or follow an online yoga tutorial to stretch your body and calm your mind.", "2023-06-06"),
+        Task("Go for a bike ride", "Hop on your bicycle and explore your neighborhood or find a scenic cycling route nearby.", "2023-06-07"),
+        Task("Write in a journal", "Spend some time reflecting on your day and write down your thoughts and feelings in a journal.", "2023-06-07"),
+        Task("Try a new hobby", "Pick up a new hobby or revisit an old one that you enjoy, such as painting, knitting, or playing a musical instrument.", "2023-06-07"),
+        Task("Have a picnic", "Pack a delicious lunch or snacks, find a picturesque spot outdoors, and enjoy a relaxing picnic.", "2023-06-08"),
+        Task("Take a scenic drive", "Explore the countryside or coastal areas by taking a leisurely drive and appreciating the natural beauty around you.", "2023-06-08"),
+        Task("Visit a local museum", "Discover the art, history, or culture of your city by visiting a nearby museum or art gallery.", "2023-06-08"),
+        Task("Task with empty values", "", ""),)
     listTask.addAll(tasks)
+    sortTask()
 }
