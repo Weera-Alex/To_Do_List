@@ -43,6 +43,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -67,6 +68,8 @@ fun HomeScreen(navController: NavHostController) {
     var title by remember { mutableStateOf("") }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val focusManager = LocalFocusManager.current
+
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
@@ -95,6 +98,8 @@ fun HomeScreen(navController: NavHostController) {
                                             duration = SnackbarDuration.Short
                                         )
                                     }
+                                    title = ""
+                                    focusManager.clearFocus()
                                 }) {
                                 Icon(
                                     imageVector = Icons.Default.Check,
