@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -19,6 +20,7 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
@@ -31,6 +33,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -53,24 +56,46 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.launch
 
+
+
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(navController: NavHostController) {
+fun HomeScreen(
+    navController: NavHostController,
+    allDateItems: List<Pair<String, MutableMap<Int, Task>>>,
+    allUniqueDate: MutableSet<String>
+) {
     val scrollState = rememberLazyListState()
-    val allDateItems = listOf(
-        "Overdue" to allOverdueDate(),
-        "Today" to allCurrentDate(),
-        "Tomorrow" to allTomorrowDate(),
-        "Later" to allLaterDate(),
-        "No date" to allNoDate()
-    )
     val expandedState = remember { mutableStateListOf<Boolean>().apply { repeat(allDateItems.size) { add(true) } } }
     var title by remember { mutableStateOf("") }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
-
+    var dividerColor by remember { mutableStateOf(false) }
     Scaffold(
+        topBar = {
+            TopAppBar(modifier = Modifier.fillMaxWidth(), title = { } )
+            LazyRow {
+                allUniqueDate.forEach { item ->
+                    item {
+                        Box(modifier = Modifier.clickable { dividerColor = !dividerColor }) {
+                            Column {
+                                Text(text = item,
+                                    fontWeight = FontWeight.Thin,
+                                    modifier = Modifier.padding(12.dp)
+                                )
+                                Divider(
+                                    thickness = 2.dp,
+                                    color = if (dividerColor) Color(0xFFFE552F) else Color.Gray
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { navController.navigate("create") },
@@ -211,6 +236,5 @@ fun TaskItem(index: Int, item: Task, navController: NavHostController, showDateI
             }
         }
     }
-
 }
 

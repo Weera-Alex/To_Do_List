@@ -30,16 +30,38 @@ fun sortTask() {
 
 
 
-fun currentDate(): String? {
+fun currentDate(): String {
     val currentDate = LocalDate.now()
     val formatter = DateTimeFormatter.ofPattern("E, MMM d")
     return currentDate.format(formatter)
 }
-fun tomorrowDate(daysAdded: Int): String? {
+fun tomorrowDate(daysAdded: Int): String {
     val currentDate = LocalDate.now()
     val tomorrow = currentDate.plusDays(daysAdded.toLong())
     val formatter = DateTimeFormatter.ofPattern("E, MMM d")
     return tomorrow.format(formatter)
+}
+fun allUniqueDate(): MutableSet<String> {
+    val dayMapping = mapOf(
+        "Mon" to "Monday",
+        "Tue" to "Tuesday",
+        "Wed" to "Wednesday",
+        "Thu" to "Thursday",
+        "Fri" to "Friday",
+        "Sat" to "Saturday",
+        "Sun" to "Sunday"
+    )
+
+    val taskUniqueDate = mutableSetOf<String>()
+    for (item in listTask) {
+        if (item.date == "") {
+            continue
+        } else {
+            val list = item.date!!.replace(",", "").split(" ")
+            taskUniqueDate.add("${list[2]}\n${dayMapping[list[0]]}")
+        }
+    }
+    return taskUniqueDate
 }
 
 fun allOverdueDate(): MutableMap<Int, Task> {

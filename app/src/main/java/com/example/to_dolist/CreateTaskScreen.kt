@@ -1,10 +1,6 @@
 package com.example.to_dolist
 
-import android.util.Log
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,17 +8,16 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -32,23 +27,33 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.vanpra.composematerialdialogs.MaterialDialog
 import com.vanpra.composematerialdialogs.datetime.date.datepicker
 import com.vanpra.composematerialdialogs.rememberMaterialDialogState
 import java.time.LocalDate
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddNewTaskScreenPreview() {
+    AddNewTaskScreen(rememberNavController())
+}
+
+@Preview
+@Composable
+fun AddNewTaskScreenPreviewPreview() {
+    AddNewTaskScreenPreview()
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -88,6 +93,36 @@ fun AddNewTaskScreen(navController: NavHostController) {
                 }
             }
         )
+        Spacer(modifier = Modifier.padding(vertical = 16.dp))
+        Row(Modifier.padding(start = 16.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
+            FilledTonalButton(onClick = {
+                    isDateFieldFocused = true
+                    date = currentDate()
+                }) {
+                Text(text = "Today", color = Color.White)
+            }
+            Spacer(modifier = Modifier.padding(horizontal = 4.dp))
+            FilledTonalButton(onClick = {
+                    isDateFieldFocused = true
+                    date = tomorrowDate(1)
+                }) {
+                Text(text = "Tomorrow", color = Color.White)
+            }
+        }
+        Row(Modifier.padding(start = 16.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
+            FilledIconButton(onClick = { dateDialogState.show() }) {
+                Icon(
+                    painter = painterResource(id = R.drawable.more_time_fill0_wght400_grad0_opsz48),
+                    contentDescription = "Add date",
+                )
+            }
+            FilledIconButton(onClick = { /* doSomething() */ }) {
+                Icon(
+                    painter = painterResource(id = R.drawable.notification_add_fill0_wght400_grad0_opsz48),
+                    contentDescription = "Add notification",
+                )
+            }
+        }
         Column(modifier = Modifier.padding(16.dp)) {
             OutlinedTextField(
                 value = title,
@@ -97,7 +132,9 @@ fun AddNewTaskScreen(navController: NavHostController) {
                 },
                 label = { Text(text = "Title") },
                 placeholder = { Text(text = "Add a task") },
-                modifier = Modifier.padding(vertical = 4.dp).fillMaxWidth(),
+                modifier = Modifier
+                    .padding(vertical = 4.dp)
+                    .fillMaxWidth(),
                 trailingIcon = {
                     if (isTitleNotEmpty) {
                         Icon(
@@ -152,6 +189,7 @@ fun AddNewTaskScreen(navController: NavHostController) {
                     disabledLabelColor = if (isDateFieldFocused) Color.White else Color.DarkGray,
                 )
             )
+
         }
     }
     MaterialDialog(
@@ -170,5 +208,7 @@ fun AddNewTaskScreen(navController: NavHostController) {
         }
     }
 }
+
+
 
 
