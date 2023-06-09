@@ -59,6 +59,6 @@ fun InfoScreen(navController: NavHostController, value: String) {
             )
         )
         task.description?.let { Text(text = it) }
-        task.date?.let { Text(text = it) }
+        task.date?.let { Text(text = it.toString()) }
     }
 }

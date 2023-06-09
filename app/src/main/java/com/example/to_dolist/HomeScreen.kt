@@ -2,6 +2,7 @@ package com.example.to_dolist
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,18 +12,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -48,24 +48,58 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
+import com.example.to_dolist.canva.CustomAddButtonDesign
 import kotlinx.coroutines.launch
 
 
+@Preview
+@Composable
+private fun Preview() {
+    GreetingUpperPart(rememberNavController())
+}
 
-
-
+@Composable
+private fun GreetingUpperPart(navController: NavHostController) {
+    val currentTime = getCurrentTime()
+    Row(
+        Modifier.padding(16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = currentTime,
+            fontFamily = FontFamily.SansSerif,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.weight(1f)
+        )
+        FilledIconButton(onClick = { navController.navigate("date") }) {
+            Icon(
+                imageVector = Icons.Default.DateRange,
+                contentDescription = "View date",
+            )
+        }
+        FilledIconButton(onClick = { /* doSomething() */ }) {
+            Icon(
+                imageVector = Icons.Default.Notifications,
+                contentDescription = "View notification",
+            )
+        }
+    }
+}
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     navController: NavHostController,
-    allDateItems: List<Pair<String, MutableMap<Int, Task>>>,
-    allUniqueDate: MutableSet<String>
+    allDateItems: List<Pair<String, Map<Int, Task>>>
 ) {
     val scrollState = rememberLazyListState()
     val expandedState = remember { mutableStateListOf<Boolean>().apply { repeat(allDateItems.size) { add(true) } } }
@@ -73,35 +107,18 @@ fun HomeScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
-    var dividerColor by remember { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
             TopAppBar(modifier = Modifier.fillMaxWidth(), title = { } )
-            LazyRow {
-                allUniqueDate.forEach { item ->
-                    item {
-                        Box(modifier = Modifier.clickable { dividerColor = !dividerColor }) {
-                            Column {
-                                Text(text = item,
-                                    fontWeight = FontWeight.Thin,
-                                    modifier = Modifier.padding(12.dp)
-                                )
-                                Divider(
-                                    thickness = 2.dp,
-                                    color = if (dividerColor) Color(0xFFFE552F) else Color.Gray
-                                )
-                            }
-                        }
-                    }
-                }
-            }
+            GreetingUpperPart(navController)
         },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { navController.navigate("create") },
-                shape = CircleShape,
+                shape = RoundedCornerShape(0.dp),
             ) {
-                Icon(Icons.Default.Add, contentDescription = "")
+                CustomAddButtonDesign()
             }
         },
         floatingActionButtonPosition = FabPosition.End,
@@ -116,7 +133,7 @@ fun HomeScreen(
                         if (title.isNotEmpty()) {
                             IconButton(
                                 onClick = {
-                                    listTask.add(Task(title, description = "", date = ""))
+                                    listTask.add(Task(title, description = "", date = null))
                                     scope.launch {
                                         snackbarHostState.showSnackbar(
                                             message = "Task added",
@@ -164,14 +181,14 @@ fun HomeScreen(
 }
 
 @Composable
-fun DueDateTopBar(title: String, expanded: Boolean, onClick: () -> Unit) {
+private fun DueDateTopBar(title: String, expanded: Boolean, onClick: () -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(start = 16.dp, top = 32.dp, bottom = 32.dp)
     ) {
         Text(
             text = title,
-            fontWeight = FontWeight.Normal,
+            fontWeight = FontWeight.ExtraBold,
             style = MaterialTheme.typography.headlineSmall,
         )
         IconButton(
@@ -192,12 +209,12 @@ fun DueDateTopBar(title: String, expanded: Boolean, onClick: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TaskItem(index: Int, item: Task, navController: NavHostController, showDateIcon: Boolean = true) {
+private fun TaskItem(index: Int, item: Task, navController: NavHostController, showDateIcon: Boolean = true) {
     var checkedState by rememberSaveable { mutableStateOf(false) }
     Box(modifier = Modifier
         .padding(bottom = 2.dp, start = 6.dp, end = 6.dp)
-        .background(Color.DarkGray)
         .fillMaxWidth()
+        .background(Color.DarkGray)
         .clickable {
             navController.navigate("info/$index")
         }){
@@ -228,7 +245,7 @@ fun TaskItem(index: Int, item: Task, navController: NavHostController, showDateI
                         )
                         Spacer(modifier = Modifier.padding(horizontal = 4.dp))
                         Text(
-                            text = item.date!!,
+                            text = taskItemFormat(item.date),
                             fontSize = 12.sp
                         )
                     }

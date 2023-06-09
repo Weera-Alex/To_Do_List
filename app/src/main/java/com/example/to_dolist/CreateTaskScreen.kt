@@ -79,7 +79,7 @@ fun AddNewTaskScreen(navController: NavHostController) {
                 Button(modifier = Modifier.padding(end = 14.dp),
                     onClick = {
                         if (title.isNotBlank()) {
-                            listTask.add(Task(title, description, date))
+                            listTask.add(Task(title, description, LocalDate.parse(date)))
                             navController.navigateUp()
                         } else {
                             isTitleNotEmpty = true
@@ -97,14 +97,14 @@ fun AddNewTaskScreen(navController: NavHostController) {
         Row(Modifier.padding(start = 16.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
             FilledTonalButton(onClick = {
                     isDateFieldFocused = true
-                    date = currentDate()
+                    date = currentDate().toString()
                 }) {
                 Text(text = "Today", color = Color.White)
             }
             Spacer(modifier = Modifier.padding(horizontal = 4.dp))
             FilledTonalButton(onClick = {
                     isDateFieldFocused = true
-                    date = tomorrowDate(1)
+                    date = tomorrowDate(1).toString()
                 }) {
                 Text(text = "Tomorrow", color = Color.White)
             }

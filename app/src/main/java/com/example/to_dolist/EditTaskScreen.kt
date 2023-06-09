@@ -44,7 +44,7 @@ fun EditTaskScreen(navController: NavHostController, value: String) {
     }
     var title by remember { mutableStateOf(task.title) }
     var description by remember { mutableStateOf(task.description) }
-    var date by remember { mutableStateOf(task.date) }
+    var date by remember { mutableStateOf(task.date.toString()) }
     var isTitleBlank by remember { mutableStateOf(false) }
     val dateDialogState = rememberMaterialDialogState()
     var isDateFieldFocused by remember { mutableStateOf(true) }
@@ -63,7 +63,7 @@ fun EditTaskScreen(navController: NavHostController, value: String) {
                 Button(modifier = Modifier.padding(end = 14.dp),
                     onClick = {
                         if (title.isNotBlank()) {
-                            listTask[value.toInt()] = Task(title, description, date)
+                            listTask[value.toInt()] = Task(title, description, LocalDate.parse(date))
                             navController.navigate("home")
                         } else {
                             isTitleBlank = true

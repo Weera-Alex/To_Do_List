@@ -9,7 +9,6 @@ import androidx.navigation.navArgument
 
 @Composable
 fun AppNavigation() {
-    createSampleTasks()
     val allDateItems = listOf(
         "Overdue" to allOverdueDate(),
         "Today" to allCurrentDate(),
@@ -24,7 +23,10 @@ fun AppNavigation() {
         startDestination = "home"
     ) {
         composable("home") {
-            HomeScreen(navController, allDateItems, allUniqueDate)
+            HomeScreen(navController, allDateItems)
+        }
+        composable("date") {
+            ScrollDate(navController, allUniqueDate)
         }
         composable(route = "create") {
             AddNewTaskScreen(navController)
