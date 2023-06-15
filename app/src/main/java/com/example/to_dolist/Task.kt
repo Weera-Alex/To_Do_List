@@ -10,6 +10,7 @@ data class Task(
     val title: String,
     val description: String?,
     val date: LocalDate?,
+    val finished: Boolean = false,
 )
 
 var listTask = mutableStateListOf<Task>()
@@ -18,13 +19,20 @@ fun taskItemFormat(date: LocalDate?): String {
     val dateFormatter = DateTimeFormatter.ofPattern("E, MMM d", Locale.ENGLISH)
     return date?.format(dateFormatter) ?: ""
 }
-
+fun formatCurrentDate(): String {
+    val currentDate = LocalDate.now()
+    val formatter = DateTimeFormatter.ofPattern("MMM d, yyyy")
+    return currentDate.format(formatter)
+}
+fun getDaysOfWeek(): String {
+    return LocalDate.now().dayOfWeek.toString()
+}
 fun getCurrentTime(): String {
     val currentTime = LocalTime.now()
     return when (currentTime.hour) {
-        in 5 until 12 -> "Good\nmorning"
-        in 12 until 18 -> "Good\nafternoon"
-        else -> "Good\nevening"
+        in 5 until 12 -> "Good\nMorning"
+        in 12 until 18 -> "Good\nAfternoon"
+        else -> "Good\nEvening"
     }
 }
 
@@ -35,25 +43,13 @@ fun tomorrowDate(daysAdded: Int): LocalDate? {
     val currentDate = LocalDate.now()
     return currentDate.plusDays(daysAdded.toLong())
 }
-fun allUniqueDate(): MutableSet<String> {
-    val taskUniqueDate = mutableSetOf<String>()
-    for (item in listTask) {
-        if (item.date == null) {
-            continue
-        } else {
-            val dateFormatter = DateTimeFormatter.ofPattern("d EEEE")
-            taskUniqueDate.add(item.date.format(dateFormatter).replace(" ", "\n"))
-        }
-    }
-    return taskUniqueDate
-}
 
 fun allOverdueDate(): Map<Int, Task> {
     val today = LocalDate.now()
     return listTask.withIndex()
         .filter { (_, item) ->
             item.date != null
-                    && item.date.isBefore(today)
+                    && item.date.isBefore(today) && !item.finished
         }
         .associate { (index, item) -> index to item}
 }
@@ -62,7 +58,7 @@ fun allLaterDate(): Map<Int, Task> {
     return listTask.withIndex()
         .filter { (_, item) ->
             item.date != null
-                    && item.date.isAfter(tomorrow)
+                    && item.date.isAfter(tomorrow) && !item.finished
         }
         .associate { (index, item) -> index to item}
 }
@@ -70,7 +66,7 @@ fun allLaterDate(): Map<Int, Task> {
 fun allCurrentDate(): Map<Int, Task> {
     val currentDate = currentDate()
     return listTask.withIndex()
-        .filter { (_, item) -> item.date == currentDate }
+        .filter { (_, item) -> item.date == currentDate && !item.finished }
         .associate { (index, item) -> index to item}
 }
 
@@ -78,61 +74,19 @@ fun allCurrentDate(): Map<Int, Task> {
 fun allTomorrowDate(): Map<Int, Task> {
     val tomorrowDate = tomorrowDate(1)
     return listTask.withIndex()
-        .filter { (_, item) -> item.date == tomorrowDate }
+        .filter { (_, item) -> item.date == tomorrowDate && !item.finished }
         .associate { (index, item) -> index to item}
 }
 
 fun allNoDate(): Map<Int, Task> {
     return listTask.withIndex()
-        .filter { (_, item) -> item.date == null }
+        .filter { (_, item) -> item.date == null && !item.finished }
         .associate { (index, item) -> index to item }
 }
 
-fun createSampleTasks() {
-    val tasks = listOf(
-        Task("Defeat the final boss",
-            "Embark on an epic quest to defeat the final boss and save the virtual world.",
-            LocalDate.of(2023, 6, 10)
-        ),
-        Task("Update resume",
-            null,
-            LocalDate.of(2023, 6, 11)
-        ),
-        Task("Practice meditation",
-            "Take some time to practice mindfulness and meditation",
-            null
-        ),
-        Task("Search for the lost treasure",
-            null,
-            LocalDate.of(2023, 6, 12)
-        ),
-        Task("Conquer the multiplayer battlefield",
-            "Assemble your team, strategize, and dominate the online battlefield with your superior gaming skills.",
-            LocalDate.of(2023, 6, 13)
-        ),
-        Task("Train with the elite gamers",
-            null,
-            LocalDate.of(2023, 6, 14)
-        ),
-        Task("Unlock the secret cheat codes",
-            "Embark on a quest to uncover the legendary cheat codes that grant unimaginable powers in the virtual world.",
-            null
-        ),
-        Task("Rescue the princess",
-            null,
-            null
-        ),
-        Task("Go hiking",
-            "Explore a nearby hiking trail and enjoy the nature",
-            LocalDate.of(2023, 6, 10)
-        ),
-        Task("Update resume",
-            "Review and update your resume for future opportunities",
-            LocalDate.of(2023, 6, 11)
-        ),
-        Task("Practice meditation",
-            "Take some time to practice mindfulness and meditation",
-            LocalDate.of(2023, 6, 9)
-        ))
-    listTask.addAll(tasks)
+fun allCompletedTask(): Map<Int, Task> {
+    return listTask.withIndex()
+        .filter { (_, item) -> item.finished }
+        .associate { (index, item) -> index to item }
 }
+

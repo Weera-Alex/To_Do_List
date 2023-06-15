@@ -14,9 +14,9 @@ fun AppNavigation() {
         "Today" to allCurrentDate(),
         "Tomorrow" to allTomorrowDate(),
         "Later" to allLaterDate(),
-        "No date" to allNoDate()
+        "No date" to allNoDate(),
+        "Completed" to allCompletedTask()
     )
-    val allUniqueDate = allUniqueDate()
     val navController = rememberNavController()
     NavHost(
         navController = navController,
@@ -24,9 +24,6 @@ fun AppNavigation() {
     ) {
         composable("home") {
             HomeScreen(navController, allDateItems)
-        }
-        composable("date") {
-            ScrollDate(navController, allUniqueDate)
         }
         composable(route = "create") {
             AddNewTaskScreen(navController)

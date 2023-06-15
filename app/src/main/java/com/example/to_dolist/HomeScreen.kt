@@ -8,24 +8,25 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
-import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -33,14 +34,12 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,43 +55,41 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
-import com.example.to_dolist.canva.CustomAddButtonDesign
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 
 @Preview
 @Composable
 private fun Preview() {
-    GreetingUpperPart(rememberNavController())
+    TopBarContent()
 }
 
 @Composable
-private fun GreetingUpperPart(navController: NavHostController) {
+private fun TopBarContent() {
     val currentTime = getCurrentTime()
-    Row(
-        Modifier.padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+    Column(modifier = Modifier.padding(16.dp)) {
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = currentTime,
+                fontFamily = FontFamily.SansSerif,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.weight(1f),
+                fontSize = 32.sp,
+                lineHeight = 32.sp
+            )
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Text("Today's ${getDaysOfWeek().lowercase()
+            .replaceFirstChar { 
+                if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }}")
         Text(
-            text = currentTime,
-            fontFamily = FontFamily.SansSerif,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.weight(1f)
+            text = formatCurrentDate(),
+            color = Color.DarkGray
         )
-        FilledIconButton(onClick = { navController.navigate("date") }) {
-            Icon(
-                imageVector = Icons.Default.DateRange,
-                contentDescription = "View date",
-            )
-        }
-        FilledIconButton(onClick = { /* doSomething() */ }) {
-            Icon(
-                imageVector = Icons.Default.Notifications,
-                contentDescription = "View notification",
-            )
-        }
     }
 }
 @OptIn(ExperimentalMaterial3Api::class)
@@ -110,15 +107,14 @@ fun HomeScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(modifier = Modifier.fillMaxWidth(), title = { } )
-            GreetingUpperPart(navController)
+            LargeTopAppBar(modifier = Modifier.wrapContentWidth(), title = { } )
+            TopBarContent()
         },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { navController.navigate("create") },
-                shape = RoundedCornerShape(0.dp),
             ) {
-                CustomAddButtonDesign()
+                Icon(Icons.Default.Add, contentDescription = "Add")
             }
         },
         floatingActionButtonPosition = FabPosition.End,
@@ -169,7 +165,7 @@ fun HomeScreen(
                                     index = key,
                                     item = item,
                                     navController = navController,
-                                    showDateIcon = title != "No date"
+                                    showDateIcon = item.date != null
                                 )
                             }
                         }
@@ -207,23 +203,25 @@ private fun DueDateTopBar(title: String, expanded: Boolean, onClick: () -> Unit)
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TaskItem(index: Int, item: Task, navController: NavHostController, showDateIcon: Boolean = true) {
-    var checkedState by rememberSaveable { mutableStateOf(false) }
+    val complete = item.finished
+    val color = if (complete) Color.Gray else Color.White
+    val style = if (complete) TextStyle(textDecoration = TextDecoration.LineThrough)
+    else TextStyle(textDecoration = TextDecoration.None)
     Box(modifier = Modifier
         .padding(bottom = 2.dp, start = 6.dp, end = 6.dp)
         .fillMaxWidth()
         .background(Color.DarkGray)
         .clickable {
             navController.navigate("info/$index")
-        }){
+        }) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Checkbox(
-                checked = checkedState,
-                onCheckedChange = { isChecked ->
-                    checkedState = isChecked
+                onCheckedChange = {
+                    listTask[index] = listTask[index].copy(finished = !item.finished)
                 },
+                checked = complete,
             )
             Column(modifier = Modifier.padding(start = 8.dp)) {
                 Text(
@@ -232,21 +230,22 @@ private fun TaskItem(index: Int, item: Task, navController: NavHostController, s
                     fontSize = 16.sp,
                     overflow = TextOverflow.Ellipsis,
                     maxLines = 1,
-                    color = if (checkedState) Color.Gray else Color.White,
-                    style = if (checkedState) TextStyle(textDecoration = TextDecoration.LineThrough)
-                    else TextStyle(textDecoration = TextDecoration.None),
+                    color = color,
+                    style = style,
                 )
                 if (showDateIcon) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             Icons.Default.DateRange,
                             contentDescription = "DateRange",
-                            modifier = Modifier.size(10.dp)
+                            modifier = Modifier.size(10.dp),
+                            tint = color,
                         )
                         Spacer(modifier = Modifier.padding(horizontal = 4.dp))
                         Text(
                             text = taskItemFormat(item.date),
-                            fontSize = 12.sp
+                            fontSize = 12.sp,
+                            color = color,
                         )
                     }
                 }
